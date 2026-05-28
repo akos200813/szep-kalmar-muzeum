@@ -1,2 +1,2 @@
 # szep-kalmar-muzeum
-ez egy muzeum
+ez nem egy muzeum
