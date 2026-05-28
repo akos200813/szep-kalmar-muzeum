@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratóriumi műszerek — UMSZKI Múzeum</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#C9A84C;--gold2:#E8D08A;
+  --dark:#1A1610;--dark2:#232016;--dark3:#2C2719;
+  --cream:#F0E6CE;--cream2:#C8B98A;--muted:#7A6A4A;
+  --border:rgba(201,168,76,0.2)
+}
+body{background:var(--dark);color:var(--cream);font-family:'Outfit',sans-serif;padding:2.5rem 2rem;min-height:100vh}
+
+h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3vw,2.4rem);color:var(--cream);margin-bottom:.3rem;line-height:1.2}
+h1 em{color:var(--gold);font-style:italic}
+.subtitle{font-size:.8rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:2rem}
+
+.controls{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:2rem;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{
+  width:100%;background:var(--dark2);border:1px solid var(--border);
+  color:var(--cream);padding:10px 12px 10px 38px;
+  font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s
+}
+.search-wrap input:focus{border-color:rgba(201,168,76,.5)}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.95rem;pointer-events:none}
+.filter-btn{
+  background:var(--dark2);border:1px solid var(--border);color:var(--muted);
+  padding:10px 18px;font-family:'Outfit',sans-serif;font-size:.75rem;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap
+}
+.filter-btn:hover,.filter-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.08)}
+.count{font-size:.8rem;color:var(--muted);margin-left:auto;white-space:nowrap;align-self:center}
+
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+  gap:1px;background:var(--border)
+}
+.card{
+  background:var(--dark2);padding:1.25rem 1.25rem 1rem;cursor:default;
+  position:relative;border-bottom:2px solid transparent;transition:all .2s
+}
+.card:hover{background:var(--dark3);border-bottom-color:var(--gold)}
+.card-num{font-family:'Playfair Display',serif;font-size:2rem;color:rgba(201,168,76,.2);line-height:1;margin-bottom:.5rem}
+.card-era{
+  display:inline-block;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);
+  padding:2px 8px;margin-bottom:.6rem
+}
+.card-title{font-size:.93rem;color:var(--cream);line-height:1.55;font-weight:500}
+.card-title strong{color:var(--gold2)}
+.card-maker{font-size:.78rem;color:var(--muted);margin-top:.5rem;line-height:1.5;font-style:italic}
+.card-sub{font-size:.78rem;color:rgba(200,185,138,.5);margin-top:.25rem}
+.cat-dot{width:7px;height:7px;border-radius:50%;position:absolute;top:1rem;right:1rem}
+
+.no-results{text-align:center;padding:4rem 1rem;color:var(--muted);font-style:italic;display:none}
+.no-results.show{display:block}
+
+footer{margin-top:3rem;text-align:center;font-size:.75rem;color:var(--muted);opacity:.5}
+</style>
+</head>
+<body>
+
+<h1>Laboratóriumi <em>műszerek</em></h1>
+<p class="subtitle">Iskolánk múltjából · 47 kiállított tárgy</p>
+
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search" placeholder="Keresés neve, gyártó, korszak…">
+  </div>
+  <button class="filter-btn active" data-cat="all">Mind</button>
+  <button class="filter-btn" data-cat="elektro">Elektromos</button>
+  <button class="filter-btn" data-cat="fizika">Fizikai</button>
+  <button class="filter-btn" data-cat="gepeszet">Gépészet</button>
+  <button class="filter-btn" data-cat="egyeb">Egyéb</button>
+  <span class="count" id="count">47 tárgy</span>
+</div>
+
+<div class="grid" id="grid"></div>
+<div class="no-results" id="noRes">Nincs találat a keresési feltételekre.</div>
+
+<footer>UMSZKI Iskolai Múzeum · Budapest</footer>
+
+<script>
+const items=[
+  {n:1,title:"Tükrös galvanométer",maker:"Dr. B. Lange cég, német gyártmány",era:"1930-as évek",cat:"elektro"},
+  {n:2,title:"Többfunkciós elektromos mérőműszer",maker:"Német gyártmány",era:"1930-as évek",cat:"elektro"},
+  {n:3,title:"Működőképes stabil gőzgépmodell",maker:"Vizsgamunka",era:"1957–1958",cat:"gepeszet"},
+  {n:4,title:"Precíziós laboratóriumi kétkarú mérleg",maker:"Zier Károly, Budapest",era:"1930-as évek",cat:"fizika"},
+  {n:5,title:"HG 5 KCC hívójelű iskolai rádióamatőr klub emléktárgya",maker:"",era:"",cat:"egyeb"},
+  {n:6,title:"Fizikakísérleti katódsugárcső",maker:"Bemutató eszköz",era:"1960-as évek",cat:"fizika"},
+  {n:7,title:"Iskolai műhelygyakorlaton gyártott rádiócső (vákuumcső)",maker:"",era:"",cat:"elektro"},
+  {n:8,title:"Műszer katódsugárcső",maker:"",era:"1960-as évek",cat:"elektro"},
+  {n:9,title:"<strong>Univeka</strong> – hordozható szervizműszer",maker:"Hazai gyártmány",era:"1960",cat:"elektro"},
+  {n:10,title:"<strong>Unavo</strong> – laboratóriumi csővoltmérő",maker:"",era:"",cat:"elektro"},
+  {n:11,title:"Asztali fadobozos labor-feszültségmérő",maker:"",era:"1930-as évek",cat:"elektro"},
+  {n:12,title:"<strong>Servotest</strong> Signal Generator",maker:"ORION-EMG gyártmány",era:"1950–1970",cat:"elektro",sub:"Univerzális elektromos mérőhelyek sorozat"},
+  {n:13,title:"V.T. voltmérő",maker:"ORION-EMG gyártmány",era:"1950–1970",cat:"elektro"},
+  {n:14,title:"<strong>Orivohm II.</strong> voltmérő",maker:"ORION-EMG gyártmány",era:"1950–1970",cat:"elektro"},
+  {n:15,title:"Servotest oscilloscope",maker:"ORION-EMG gyártmány",era:"1950–1970",cat:"elektro"},
+  {n:16,title:"<strong>Unimeter</strong> – fadobozos, univerzális mérőkészülék",maker:"Magyar gyártmány",era:"1950-es évek",cat:"elektro"},
+  {n:17,title:"Szovjet gyártmányú hordozható univerzális mérőműszer",maker:"",era:"",cat:"elektro"},
+  {n:18,title:"<strong>Isoleka</strong> – Megaohm szigetelésmérő (megger)",maker:"",era:"",cat:"elektro"},
+  {n:19,title:"UHF-voltmeter",maker:"Rohde & Schwarz",era:"1948",cat:"elektro"},
+  {n:20,title:"Szovjet gyártmányú ellenállásszekrény",maker:"",era:"1950-es évek",cat:"elektro"},
+  {n:21,title:"<strong>TV-Wobblerscope</strong> szerviz/laborműszer",maker:"Híradástechnikai Szövetkezet",era:"1965",cat:"elektro"},
+  {n:22,title:"Kézi tekercselő számláló",maker:"",era:"1960–1970",cat:"elektro"},
+  {n:23,title:"Bemutató háromcsöves rádiókészülék",maker:"Transzvill, Mosonyi László",era:"1964",cat:"elektro"},
+  {n:24,title:"Áramváltó",maker:"EKM — Elektromos Készülékek és Mérőműszerek Gyára, Kispest",era:"1950-es évek",cat:"elektro"},
+  {n:25,title:"Bemutató szorzótekercses teljesítménymérő (wattmérő)",maker:"",era:"",cat:"elektro"},
+  {n:26,title:"Bemutató Bourdon-csöves nyomásmérő (manométer)",maker:"Marx és Mérei, Budapest",era:"1940-es évek",cat:"fizika"},
+  {n:27,title:"Anyagvizsgáló spektroszkóp alapkészülék",maker:"",era:"",cat:"fizika"},
+  {n:28,title:"Bemutató egykarú ellensúlyos mérleg",maker:"",era:"",cat:"fizika"},
+  {n:29,title:"Szobai légnyomásmérő (barométer)",maker:"Erdély és Szabó Műszergyár, Budapest",era:"1930-as évek",cat:"fizika"},
+  {n:30,title:"Fizika laboratóriumi hidrosztatikai kísérleti készlet",maker:"",era:"1930-as évek",cat:"fizika"},
+  {n:31,title:"Állandómágneses váltakozó feszültségű generátormodell",maker:"",era:"",cat:"elektro"},
+  {n:32,title:"Szeletelt, egyhengeres, kétütemű CSEPEL motorkerékpár-motor",maker:"",era:"1950-es évek",cat:"gepeszet"},
+  {n:33,title:"Optikai kísérleti eszközkészlet",maker:"Calderoni, Budapest",era:"1930-as évek",cat:"fizika"},
+  {n:34,title:"Bemutató szeletelt egyhengeres légsűrítő",maker:"",era:"",cat:"gepeszet"},
+  {n:35,title:'<strong>"Ajax"</strong> rugós kalapács — szerszámgépmodell',maker:"Működőképes",era:"",cat:"gepeszet",sub:"Gépgyártástechnológiai sorozat"},
+  {n:36,title:"Asztali fúrógép — szerszámgépmodell",maker:"Működőképes",era:"",cat:"gepeszet"},
+  {n:37,title:"Vésőgép — szerszámgépmodell",maker:"Működőképes",era:"",cat:"gepeszet"},
+  {n:38,title:"Stroboszkóp hatást szemléltető hajtómű",maker:"Vizsgamunka",era:"",cat:"fizika"},
+  {n:39,title:"<strong>Festo FPC 101</strong> – szabadon programozható vezérlő",maker:"",era:"1980-as évek",cat:"elektro"},
+  {n:40,title:"Működőképes gőzkazán modell",maker:"",era:"1950-es évek",cat:"gepeszet"},
+  {n:41,title:"Univerzális műhelymikroszkóp",maker:"Carl Zeiss, Jena, NDK",era:"1960-as évek",cat:"fizika"},
+  {n:42,title:"Ferde fényélű felületi minőségmérő mikroszkóp",maker:"Schmaltz-Linnih",era:"1960-as évek",cat:"fizika"},
+  {n:43,title:"Sorozatmérő acélmérce",maker:"Schuchardt & Schütte",era:"1920-as évek",cat:"gepeszet"},
+  {n:44,title:"Klasszikus tanári fénymutató",maker:"",era:"",cat:"egyeb"},
+  {n:45,title:"Kísérleti röntgensugárcső",maker:"",era:"1930-as évek",cat:"fizika"},
+  {n:46,title:"Iskolai csengetési rendet vezérlő ingaóra",maker:"Csehszlovák gyártmány",era:"1960-as évek",cat:"egyeb"},
+  {n:47,title:"Fizikalaboratóriumi vákuumtechnikai kísérleti alaplap",maker:"",era:"",cat:"fizika"}
+];
+
+const catColors={elektro:"#C9A84C",fizika:"#5DCAA5",gepeszet:"#D85A30",egyeb:"#7F77DD"};
+const grid=document.getElementById('grid');
+const searchEl=document.getElementById('search');
+const noRes=document.getElementById('noRes');
+const countEl=document.getElementById('count');
+
+function render(data){
+  grid.innerHTML='';
+  data.forEach(item=>{
+    const d=document.createElement('div');
+    d.className='card';
+    d.innerHTML=`
+      <div class="cat-dot" style="background:${catColors[item.cat]}"></div>
+      <div class="card-num">${String(item.n).padStart(2,'0')}</div>
+      ${item.era?`<span class="card-era">${item.era}</span>`:''}
+      <div class="card-title">${item.title}</div>
+      ${item.maker?`<div class="card-maker">${item.maker}</div>`:''}
+      ${item.sub?`<div class="card-sub">${item.sub}</div>`:''}
+    `;
+    grid.appendChild(d);
+  });
+  countEl.textContent=data.length+' tárgy';
+  noRes.classList.toggle('show',data.length===0);
+}
+
+function filter(){
+  const q=searchEl.value.toLowerCase();
+  const cat=document.querySelector('.filter-btn.active').dataset.cat;
+  const res=items.filter(i=>{
+    const text=(i.title+i.maker+(i.era||'')+(i.sub||''))
+      .toLowerCase().replace(/<[^>]+>/g,'');
+    return (!q||text.includes(q))&&(cat==='all'||i.cat===cat);
+  });
+  render(res);
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    filter();
+  });
+});
+searchEl.addEventListener('input',filter);
+
+render(items);
+</script>
+</body>
+</html>
